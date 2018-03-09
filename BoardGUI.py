@@ -1,0 +1,99 @@
+#
+#   CS6613 Artificial Intelligence
+#   Project 1 Mini-Checkers Game
+#   Shang-Hung Tsai
+#
+
+import tkinter
+from CheckerGame import *
+
+class BoardGUI():
+    def __init__(self, game):
+        # Initialize parameters
+        self.game = game
+        self.ROWS = 6
+        self.COLS = 6
+        self.WINDOW_WIDTH = 600
+        self.WINDOW_HEIGHT = 600
+        self.col_width = self.WINDOW_WIDTH / self.COLS
+        self.row_height = self.WINDOW_HEIGHT / self.ROWS
+
+
+        # Initialize GUI
+        self.initBoard()
+
+    def initBoard(self):
+        self.root = tkinter.Tk()
+        self.c = tkinter.Canvas(self.root, width=self.WINDOW_WIDTH, height=self.WINDOW_HEIGHT,
+                                borderwidth=5, background='white')
+        self.c.pack()
+        self.board = [[0]*self.COLS for _ in range(self.ROWS)]
+        self.tiles = [[None for _ in range(self.COLS)] for _ in range(self.ROWS)]
+        self.updateBoard()
+
+        # Print grid lines
+        for i in range(6):
+            self.c.create_line(0, self.row_height * i, self.WINDOW_WIDTH, self.row_height * i, width=2)
+            self.c.create_line(self.col_width * i, 0, self.col_width * i, self.WINDOW_HEIGHT, width=2)
+
+
+        # Initialize parameters
+        self.checkerSelected = False
+        self.clickData = {"row": 0, "col": 0, "checker": None}
+        self.c.bind("<Button-1>", self.callback)
+        self.root.mainloop()
+
+    def updateBoard(self):
+        newBoard = self.game.getBoard()
+        for i in range(len(self.board)):
+            for j in range(len(self.board[0])):
+                if self.board[i][j] != newBoard[i][j]:
+                    self.board[i][j] = newBoard[i][j]
+                    self.c.delete(self.tiles[i][j])
+                    self.tiles[i][j] = None
+                    if newBoard[i][j] < 0:
+                        self.tiles[i][j] = self.c.create_oval(j*self.col_width+10, i*self.row_height+10,
+                                                          (j+1)*self.col_width-10, (i+1)*self.row_height-10,
+                                                          fill="black")
+                    elif newBoard[i][j] > 0:
+                        self.tiles[i][j] = self.c.create_oval(j*self.col_width+10, i*self.row_height+10,
+                                                              (j+1)*self.col_width-10, (i+1)*self.row_height-10,
+                                                              fill="red")
+
+    def callback(self, event):
+        col = int(event.x // self.col_width)
+        row = int(event.y // self.row_height)
+
+        # If there is no checker being selected
+        if not self.checkerSelected:
+            # and there exists a checker at the clicked position
+            if self.board[row][col] != 0:
+                self.clickData["row"] = row
+                self.clickData["col"] = col
+                self.clickData["color"] = self.c.itemcget(self.tiles[row][col], 'fill')
+
+                # replace clicked checker with a temporary checker
+                self.c.delete(self.tiles[row][col])
+                self.tiles[row][col] = self.c.create_oval(col*self.col_width+10, row*self.row_height+10,
+                                                         (col+1)*self.col_width-10, (row+1)*self.row_height-10,
+                                                          fill="green")
+                self.checkerSelected = True
+
+            else: # no checker at the clicked postion
+                return
+
+        else: # There is a checker being selected
+            # First reset the board
+            oldrow = self.clickData["row"]
+            oldcol = self.clickData["col"]
+            self.c.delete(self.tiles[oldrow][oldcol])
+            self.tiles[oldrow][oldcol] = self.c.create_oval(oldcol*self.col_width+10, oldrow*self.row_height+10,
+                                                            (oldcol+1)*self.col_width-10, (oldrow+1)*self.row_height-10,
+                                                            fill=self.clickData["color"])
+
+            # If the destination leads to a legal move
+            if (self.game.move(self.clickData["row"], self.clickData["col"],row, col)):
+                self.updateBoard()
+            self.checkerSelected = False
+
+
