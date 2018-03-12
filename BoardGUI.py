@@ -60,14 +60,21 @@ class BoardGUI():
                                                               (j+1)*self.col_width-10, (i+1)*self.row_height-10,
                                                               fill="red")
 
+    # this function checks if the checker belongs to the current player
+    # if isPlayerTurn() returns True, then it is player's turn and only
+    # postive checkers can be moved. Vice versa.
+    def isCurrentPlayerChecker(self, row, col):
+        return self.game.isPlayerTurn() == (self.board[row][col] > 0)
+
     def callback(self, event):
         col = int(event.x // self.col_width)
         row = int(event.y // self.row_height)
 
         # If there is no checker being selected
         if not self.checkerSelected:
-            # and there exists a checker at the clicked position
-            if self.board[row][col] != 0:
+            # there exists a checker at the clicked position
+            # and the checker belongs to the current player
+            if self.board[row][col] != 0 and self.isCurrentPlayerChecker(row, col):
                 self.clickData["row"] = row
                 self.clickData["col"] = col
                 self.clickData["color"] = self.c.itemcget(self.tiles[row][col], 'fill')

@@ -10,7 +10,17 @@ from BoardGUI import *
 class CheckerGame():
     def __init__(self):
         self.board = self.initBoard()
+        self.playerTurn = True
+       # self.whoGoFirst()
         self.GUI = BoardGUI(self)
+
+    # Let player decides to go first or second
+    def whoGoFirst(self):
+        ans = input("Do you want to go first? (Y/N) ")
+        if ans == "Y" or ans == "y":
+            self.playerTurn = True
+        else:
+            self.playerTurn = False
 
     # This function initializes the game board.
     # Each checker has a label. Positive checkers for the player,
@@ -40,12 +50,19 @@ class CheckerGame():
 
             print()
 
+    def isPlayerTurn(self):
+        return self.playerTurn
+
+    def changePlayerTurn(self):
+        self.playerTurn = not self.playerTurn
+
     def move(self, oldrow, oldcol, row, col):
         if not self.isValidMove(oldrow, oldcol, row, col):
             return False
 
         self.board[row][col] = self.board[oldrow][oldcol]
         self.board[oldrow][oldcol] = 0
+        self.changePlayerTurn()
         return True
 
     def isValidMove(self, oldrow, oldcol, row, col):
@@ -55,10 +72,31 @@ class CheckerGame():
         # Another checker exists in destination position
         if self.board[row][col] != 0:
             return False
-        return True
 
-
-
-        return True
-
+        # player's turn
+        if self.playerTurn:
+            if row - oldrow == -1:   # regular move
+                return abs(col - oldcol) == 1
+            elif row - oldrow == -2:  # capture move
+                if col - oldcol == -2 and self.board[row+1][col+1] < 0:  # \ direction
+                    return True
+                elif col - oldcol == 2 and self.board[row+1][col-1] < 0:  # / direction
+                    return True
+                else:
+                    return False
+            else:
+                return False
+        # opponent's turn
+        else:
+            if row - oldrow == 1:
+                return abs(col - oldcol) == 1
+            elif row - oldrow == 2:
+                if col - oldcol == -2 and self.board[row-1][col+1] > 0: # / direction
+                    return True
+                elif col - oldcol == 2 and self.board[row-1][col-1] > 0: # \ direction
+                    return True
+                else:
+                    return False
+            else:
+                return False
 
