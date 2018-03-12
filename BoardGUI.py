@@ -40,7 +40,7 @@ class BoardGUI():
         # Initialize parameters
         self.checkerSelected = False
         self.clickData = {"row": 0, "col": 0, "checker": None}
-        self.c.bind("<Button-1>", self.callback)
+        self.c.bind("<Button-1>", self.processClick)
         self.root.mainloop()
 
     def updateBoard(self):
@@ -66,7 +66,7 @@ class BoardGUI():
     def isCurrentPlayerChecker(self, row, col):
         return self.game.isPlayerTurn() == (self.board[row][col] > 0)
 
-    def callback(self, event):
+    def processClick(self, event):
         col = int(event.x // self.col_width)
         row = int(event.y // self.row_height)
 
@@ -103,4 +103,6 @@ class BoardGUI():
                 self.updateBoard()
             self.checkerSelected = False
 
+            if self.game.isGameOver():
+                self.game.getGameSummary()
 
