@@ -6,13 +6,16 @@
 
 import tkinter
 from BoardGUI import *
+from AIPlayer import *
 
 class CheckerGame():
     def __init__(self):
         self.board = self.initBoard()
         self.playerTurn = True
        # self.whoGoFirst()
+        self.AIPlayer = AIPlayer(self)
         self.GUI = BoardGUI(self)
+        self.GUI.startGUI()
 
     # Let player decides to go first or second
     def whoGoFirst(self):
@@ -74,8 +77,18 @@ class CheckerGame():
         if not self.isValidMove(oldrow, oldcol, row, col, self.playerTurn):
             return False
         self.makeMove(oldrow, oldcol, row, col)
-        self.changePlayerTurn()
+        # self.changePlayerTurn()
+        self.GUI.updateBoard()
+        self.next()
         return True
+
+    def next(self):
+        self.changePlayerTurn()
+        if self.playerTurn:     # let player keep going
+            return
+        else:                   # AI's turn
+            oldrow, oldcol, row, col = self.AIPlayer.getNextMove()
+            self.move(oldrow, oldcol, row, col)
 
     def makeMove(self, oldrow, oldcol, row, col):
         # update checker position
@@ -132,32 +145,24 @@ class CheckerGame():
     # Check if the player can cantinue
     def playerCanContinue(self):
         directions = [[-1, -1], [-1, 1], [-2, -2], [-2, 2]]
-        print(self.playerCheckers)
         for checker in self.playerCheckers:
             position = self.checkerPositions[checker]
-            print("Current checker: " + str(position))
             row = position[0]
             col = position[1]
             for dir in directions:
-                print(str(row + dir[0]) + " " + str(col + dir[1]))
                 if self.isValidMove(row, col, row + dir[0], col + dir[1], True):
-                    print("----------------")
                     return True
         return False
 
     # Check if the opponent can cantinue
     def opponentCanContinue(self):
         directions = [[1, -1], [1, 1], [2, -2], [2, 2]]
-        print(self.opponentCheckers)
         for checker in self.opponentCheckers:
             position = self.checkerPositions[checker]
-            print("Current checker: " + str(position))
             row = position[0]
             col = position[1]
             for dir in directions:
-                print(str(row + dir[0]) + " " + str(col + dir[1]))
                 if self.isValidMove(row, col, row + dir[0], col + dir[1], False):
-                    print("----------------")
                     return True
         return False
 

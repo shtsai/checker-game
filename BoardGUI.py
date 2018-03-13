@@ -18,7 +18,6 @@ class BoardGUI():
         self.col_width = self.WINDOW_WIDTH / self.COLS
         self.row_height = self.WINDOW_HEIGHT / self.ROWS
 
-
         # Initialize GUI
         self.initBoard()
 
@@ -41,6 +40,8 @@ class BoardGUI():
         self.checkerSelected = False
         self.clickData = {"row": 0, "col": 0, "checker": None}
         self.c.bind("<Button-1>", self.processClick)
+
+    def startGUI(self):
         self.root.mainloop()
 
     def updateBoard(self):
@@ -99,8 +100,7 @@ class BoardGUI():
                                                             fill=self.clickData["color"])
 
             # If the destination leads to a legal move
-            if (self.game.move(self.clickData["row"], self.clickData["col"],row, col)):
-                self.updateBoard()
+            self.game.move(self.clickData["row"], self.clickData["col"],row, col)
             self.checkerSelected = False
 
             if self.game.isGameOver():
