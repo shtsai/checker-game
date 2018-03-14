@@ -5,6 +5,7 @@
 #
 
 import tkinter
+import time
 from BoardGUI import *
 from AIPlayer import *
 
@@ -12,18 +13,25 @@ class CheckerGame():
     def __init__(self):
         self.board = self.initBoard()
         self.playerTurn = True
-       # self.whoGoFirst()
-        self.AIPlayer = AIPlayer(self)
+       # self.playerTurn = self.whoGoFirst()
+        self.difficult = 3
+        # self.difficulty = self.getDifficulty()
+        self.AIPlayer = AIPlayer(self, self.difficulty)
         self.GUI = BoardGUI(self)
         self.GUI.startGUI()
 
-    # Let player decides to go first or second
     def whoGoFirst(self):
+        ''' Let player decide to go first or second '''
         ans = input("Do you want to go first? (Y/N) ")
-        if ans == "Y" or ans == "y":
-            self.playerTurn = True
-        else:
-            self.playerTurn = False
+        return ans == "Y" or ans == "y"
+
+    def getDifficulty(self):
+        ''' Let player decide level of difficulty '''
+        ans = eval(input("What level of difficulty? (1 Easy, 2 Medium, 3 Hard) "))
+        while not (ans == 1 or ans == 2 or ans == 3):
+            print("Invalid input, please enter a value between 1 and 3")
+            ans = eval(input("What level of difficulty? (1 Easy, 2 Medium, 3 Hard) "))
+        return ans
 
     # This function initializes the game board.
     # Each checker has a label. Positive checkers for the player,
@@ -87,8 +95,10 @@ class CheckerGame():
         if self.playerTurn:     # let player keep going
             return
         else:                   # AI's turn
+            self.GUI.pauseGUI()
             oldrow, oldcol, row, col = self.AIPlayer.getNextMove()
             self.move(oldrow, oldcol, row, col)
+            self.GUI.resumeGUI()
 
     def makeMove(self, oldrow, oldcol, row, col):
         # update checker position
@@ -174,6 +184,7 @@ class CheckerGame():
             return (not self.playerCanContinue()) and (not self.opponentCanContinue())
 
     def getGameSummary(self):
+        self.GUI.pauseGUI()
         print("Game Over!")
         playerNum = len(self.playerCheckers)
         opponentNum = len(self.opponentCheckers)

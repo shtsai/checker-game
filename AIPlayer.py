@@ -4,11 +4,20 @@
 #   Shang-Hung Tsai
 #
 
+
 class AIPlayer():
-    def __init__(self, game):
+    def __init__(self, game, difficulty):
         self.game = game
+        self.difficulty = difficulty
 
     def getNextMove(self):
+        if self.difficulty == 1:
+            return self.getNextMoveEasy()
+
+    def getNextMoveEasy(self):
+        '''
+        Simple AI, returns the first found legal move
+        '''
         directions = [[1, -1], [1, 1], [2, -2], [2, 2]]
         for checker in self.game.opponentCheckers:
             position = self.game.checkerPositions[checker]

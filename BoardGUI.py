@@ -44,6 +44,12 @@ class BoardGUI():
     def startGUI(self):
         self.root.mainloop()
 
+    def pauseGUI(self):
+        self.c.bind("<Button-1>", '')
+
+    def resumeGUI(self):
+        self.c.bind("<Button-1>", self.processClick)
+
     def updateBoard(self):
         newBoard = self.game.getBoard()
         for i in range(len(self.board)):

@@ -5,7 +5,6 @@
 #
 
 from CheckerGame import *
-from BoardGUI import *
 
 game = CheckerGame()
 
