@@ -14,7 +14,7 @@ class CheckerGame():
         self.board = self.initBoard()
         self.playerTurn = True
        # self.playerTurn = self.whoGoFirst()
-        self.difficult = 3
+        self.difficulty = 3
         # self.difficulty = self.getDifficulty()
         self.AIPlayer = AIPlayer(self, self.difficulty)
         self.GUI = BoardGUI(self)
