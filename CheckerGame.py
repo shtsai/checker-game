@@ -6,6 +6,7 @@
 
 import tkinter
 import time
+import _thread
 from BoardGUI import *
 from AIPlayer import *
 
@@ -54,6 +55,9 @@ class CheckerGame():
                 board[4][i] = i + 1
                 self.checkerPositions[-(i + 1)] = (0, i)
                 self.checkerPositions[i + 1] = (4, i)
+
+        self.boardUpdated = True
+
         return board
 
     def getBoard(self):
@@ -70,6 +74,15 @@ class CheckerGame():
 
             print()
 
+    def isBoardUpdated(self):
+        return self.boardUpdated
+
+    def setBoardUpdated(self):
+        self.boardUpdated = True
+
+    def completeBoardUpdate(self):
+        self.boardUpdated = False
+
     def isPlayerTurn(self):
         return self.playerTurn
 
@@ -83,12 +96,11 @@ class CheckerGame():
 
     def move(self, oldrow, oldcol, row, col):
         if not self.isValidMove(oldrow, oldcol, row, col, self.playerTurn):
-            return False
+            return
         self.makeMove(oldrow, oldcol, row, col)
-        # self.changePlayerTurn()
-        self.GUI.updateBoard()
-        self.next()
-        return True
+        # self.GUI.updateBoard()
+        # self.next()
+        _thread.start_new_thread(self.next, ())
 
     def next(self):
         if self.isGameOver():
@@ -121,6 +133,8 @@ class CheckerGame():
                 self.opponentCheckers.remove(toRemove)
             self.board[(oldrow + row) // 2][(oldcol + col) // 2] = 0
             self.checkerPositions.pop(toRemove, None)
+
+        self.setBoardUpdated()
 
     def isValidMove(self, oldrow, oldcol, row, col, playerTurn):
         # invalid index
