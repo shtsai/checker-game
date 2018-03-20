@@ -40,6 +40,8 @@ class BoardGUI():
         self.checkerSelected = False
         self.clickData = {"row": 0, "col": 0, "checker": None}
         self.c.bind("<Button-1>", self.processClick)
+        self.root.after(1000, self.updateBoard)
+
 
     def startGUI(self):
         self.root.mainloop()
@@ -51,21 +53,25 @@ class BoardGUI():
         self.c.bind("<Button-1>", self.processClick)
 
     def updateBoard(self):
-        newBoard = self.game.getBoard()
-        for i in range(len(self.board)):
-            for j in range(len(self.board[0])):
-                if self.board[i][j] != newBoard[i][j]:
-                    self.board[i][j] = newBoard[i][j]
-                    self.c.delete(self.tiles[i][j])
-                    self.tiles[i][j] = None
-                    if newBoard[i][j] < 0:
-                        self.tiles[i][j] = self.c.create_oval(j*self.col_width+10, i*self.row_height+10,
-                                                          (j+1)*self.col_width-10, (i+1)*self.row_height-10,
-                                                          fill="black")
-                    elif newBoard[i][j] > 0:
-                        self.tiles[i][j] = self.c.create_oval(j*self.col_width+10, i*self.row_height+10,
+        if self.game.isBoardUpdated():
+            print("Updating Board")
+            newBoard = self.game.getBoard()
+            for i in range(len(self.board)):
+                for j in range(len(self.board[0])):
+                    if self.board[i][j] != newBoard[i][j]:
+                        self.board[i][j] = newBoard[i][j]
+                        self.c.delete(self.tiles[i][j])
+                        self.tiles[i][j] = None
+                        if newBoard[i][j] < 0:
+                            self.tiles[i][j] = self.c.create_oval(j*self.col_width+10, i*self.row_height+10,
                                                               (j+1)*self.col_width-10, (i+1)*self.row_height-10,
-                                                              fill="red")
+                                                              fill="black")
+                        elif newBoard[i][j] > 0:
+                            self.tiles[i][j] = self.c.create_oval(j*self.col_width+10, i*self.row_height+10,
+                                                                  (j+1)*self.col_width-10, (i+1)*self.row_height-10,
+                                                                  fill="red")
+            self.game.completeBoardUpdate()
+        self.root.after(1000, self.updateBoard)
 
     # this function checks if the checker belongs to the current player
     # if isPlayerTurn() returns True, then it is player's turn and only
