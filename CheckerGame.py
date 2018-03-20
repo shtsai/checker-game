@@ -91,6 +91,9 @@ class CheckerGame():
         return True
 
     def next(self):
+        if self.isGameOver():
+            self.getGameSummary()
+            return
         self.changePlayerTurn()
         if self.playerTurn:     # let player keep going
             return

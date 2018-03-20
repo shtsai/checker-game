@@ -109,6 +109,4 @@ class BoardGUI():
             self.game.move(self.clickData["row"], self.clickData["col"],row, col)
             self.checkerSelected = False
 
-            if self.game.isGameOver():
-                self.game.getGameSummary()
 
