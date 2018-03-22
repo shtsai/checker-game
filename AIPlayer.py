@@ -45,23 +45,31 @@ class AIPlayer():
     def alphaBetaSearch(self, state):
         self.numNodes = 0
         self.bestMove = []
-        v = self.maxValue(state, -60, 60, self.depthLimit)
-        print(v)
+        v = self.maxValue(state, -1000, 1000, self.depthLimit)
+        print("selected value " + str(v))
         print(self.numNodes)
         return self.bestMove
 
     def maxValue(self, state, alpha, beta, depthLimit):
+        '''
+        For AI player (MAX)
+        '''
         self.numNodes += 1
-        if state.terminalTest() or depthLimit == 0:
+        if state.terminalTest():
             return state.computeUtilityValue()
-        v = -60
+        if depthLimit < 0:
+            return state.computeHeuristic()
+        v = -math.inf
         for a in state.getActions(False):
             # return captured checker if it is a capture move
             captured = state.applyAction(a)
-            state.printBoard()
-            min = self.minValue(state, alpha, beta, depthLimit - 1)
-            if min > v:
-                v = min
+            # state.printBoard()
+            if state.humanCanContinue():
+                next = self.minValue(state, alpha, beta, depthLimit - 1)
+            else:  # human cannot move, AI gets one more move
+                next = self.maxValue(state, alpha, beta, depthLimit - 1)
+            if next > v:
+                v = next
                 # Keep track of the best move so far at the top level
                 if depthLimit == self.depthLimit:
                     self.bestMove = a
@@ -76,13 +84,18 @@ class AIPlayer():
         self.numNodes += 1
         if state.terminalTest():
             return state.computeUtilityValue()
-        v = 60
+        if depthLimit < 0:
+            return state.computeHeuristic()
+        v = math.inf
         for a in state.getActions(True):
             captured = state.applyAction(a)
-            state.printBoard()
-            max = self.maxValue(state, alpha, beta, depthLimit - 1)
-            if max < v:
-                v = max
+            # state.printBoard()
+            if state.AICanContinue():
+                next = self.maxValue(state, alpha, beta, depthLimit - 1)
+            else:  # AI cannot move, human gets one more move
+                next = self.minValue(state, alpha, beta, depthLimit - 1)
+            if next < v:
+                v = next
             state.resetAction(a, captured)
 
             #alpha-beta pruning
@@ -179,7 +192,37 @@ class AIGameState():
                 return False
 
     def computeUtilityValue(self):
-        return (len(self.AICheckers) - len(self.humanCheckers)) * 10
+        '''
+        compute utility value of terminal state
+        utility value = difference in # of checkers * 500 + # of AI checkers * 50
+        '''
+        utility = (len(self.AICheckers) - len(self.humanCheckers)) * 500 \
+                  + len(self.AICheckers) * 50
+        print("Utility value = {0:d} :: {1:d} AI vs {2:d} Human".format(utility, len(self.AICheckers), len(self.humanCheckers)))
+        return utility
+
+    def computeHeuristic(self):
+        heurisitc = (len(self.AICheckers) - len(self.humanCheckers)) * 50 \
+                    + self.countSafeAICheckers() * 10 + len(self.AICheckers)
+        print("Heuristic value = {0:d} :: {1:d} AI vs {2:d} Human".format(heurisitc, len(self.AICheckers), len(self.humanCheckers)))
+        return heurisitc
+
+    def countSafeAICheckers(self):
+        '''
+        Count the number of safe AI checker.
+        A safe AI checker is one checker that no opponent can capture.
+        '''
+        count = 0
+        for AIchecker in self.AICheckers:
+            AIrow = self.checkerPositions[AIchecker][0]
+            safe = True
+            for humanchecker in self.humanCheckers:
+                if AIrow < self.checkerPositions[humanchecker][0]:
+                    safe = False
+                    break
+            if safe:
+                count += 1
+        return count
 
     def getActions(self, humanTurn):
         if humanTurn:

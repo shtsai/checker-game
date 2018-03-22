@@ -13,12 +13,17 @@ from AIPlayer import *
 class CheckerGame():
     def __init__(self):
         self.board = self.initBoard()
-        self.playerTurn = True
-       # self.playerTurn = self.whoGoFirst()
+        # self.playerTurn = True
+        self.playerTurn = self.whoGoFirst()
         self.difficulty = 3
         # self.difficulty = self.getDifficulty()
         self.AIPlayer = AIPlayer(self, self.difficulty)
         self.GUI = BoardGUI(self)
+
+        # AI goes first
+        if not self.isPlayerTurn():
+            _thread.start_new_thread(self.AIMakeMove, ())
+
         self.GUI.startGUI()
 
     def whoGoFirst(self):
@@ -110,10 +115,16 @@ class CheckerGame():
         if self.playerTurn:     # let player keep going
             return
         else:                   # AI's turn
-            self.GUI.pauseGUI()
-            oldrow, oldcol, row, col = self.AIPlayer.getNextMove()
-            self.move(oldrow, oldcol, row, col)
-            self.GUI.resumeGUI()
+            self.AIMakeMove()
+
+    def AIMakeMove(self):
+        '''
+        Temporarily Pause GUI and ask AI player to make next move.
+        '''
+        self.GUI.pauseGUI()
+        oldrow, oldcol, row, col = self.AIPlayer.getNextMove()
+        self.move(oldrow, oldcol, row, col)
+        self.GUI.resumeGUI()
 
     def makeMove(self, oldrow, oldcol, row, col):
         # update checker position
