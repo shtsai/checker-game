@@ -12,7 +12,7 @@ class AIPlayer():
         self.game = game
         self.difficulty = difficulty
         if self.difficulty == 3:
-            self.depthLimit = 15
+            self.depthLimit = 10
 
     def getNextMove(self):
         if self.difficulty == 1:
@@ -42,20 +42,37 @@ class AIPlayer():
         return nextMove[0], nextMove[1], nextMove[2], nextMove[3]
 
     def alphaBetaSearch(self, state):
+        # collect statistics for the search
+        self.currentDepth = 0
+        self.maxDepth = 0
         self.numNodes = 0
+        self.maxPruning = 0
+        self.minPruning = 0
+
         self.bestMove = []
         v = self.maxValue(state, -1000, 1000, self.depthLimit)
+
+        # print statistics for the search
         print("selected value " + str(v))
-        print(self.numNodes)
+        print("(1) max depth of the tree = {0:d}".format(self.maxDepth))
+        print("(2) total number of nodes generated = {0:d}".format(self.numNodes))
+        print("(3) number of times pruning occurred in the MAX-VALUE() = {0:d}".format(self.maxPruning))
+        print("(4) number of times pruning occurred in the MIN-VALUE() = {0:d}".format(self.minPruning))
+
         return self.bestMove
 
     # For AI player (MAX)
     def maxValue(self, state, alpha, beta, depthLimit):
-        self.numNodes += 1
         if state.terminalTest():
             return state.computeUtilityValue()
-        if depthLimit < 0:
+        if depthLimit == 0:
             return state.computeHeuristic()
+
+        # update statistics for the search
+        self.currentDepth += 1
+        self.maxDepth = max(self.maxDepth, self.currentDepth)
+        self.numNodes += 1
+
         v = -math.inf
         for a in state.getActions(False):
             # return captured checker if it is a capture move
@@ -71,19 +88,30 @@ class AIPlayer():
                 if depthLimit == self.depthLimit:
                     self.bestMove = a
             state.resetAction(a, captured)
-            # alpha-beta pruning
+
+            # alpha-beta max pruning
             if v >= beta:
+                self.maxPruning += 1
+                self.currentDepth -= 1
                 return v
             alpha = max(alpha, v)
+
+        self.currentDepth -= 1
+
         return v
 
     # For human player (MIN)
     def minValue(self, state, alpha, beta, depthLimit):
-        self.numNodes += 1
         if state.terminalTest():
             return state.computeUtilityValue()
-        if depthLimit < 0:
+        if depthLimit == 0:
             return state.computeHeuristic()
+
+        # update statistics for the search
+        self.currentDepth += 1
+        self.maxDepth = max(self.maxDepth, self.currentDepth)
+        self.numNodes += 1
+
         v = math.inf
         for a in state.getActions(True):
             captured = state.applyAction(a)
@@ -96,10 +124,14 @@ class AIPlayer():
                 v = next
             state.resetAction(a, captured)
 
-            #alpha-beta pruning
+            #alpha-beta min pruning
             if v <= alpha:
+                self.minPruning += 1
+                self.currentDepth -= 1
                 return v
             beta = min(beta, v)
+
+        self.currentDepth -= 1
         return v
 
 # a class for AI to simulate game state
