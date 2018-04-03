@@ -26,13 +26,13 @@ class CheckerGame():
 
         self.GUI.startGUI()
 
+    # Let player decide to go first or second
     def whoGoFirst(self):
-        ''' Let player decide to go first or second '''
         ans = input("Do you want to go first? (Y/N) ")
         return ans == "Y" or ans == "y"
 
+    # Let player decide level of difficulty
     def getDifficulty(self):
-        ''' Let player decide level of difficulty '''
         ans = eval(input("What level of difficulty? (1 Easy, 2 Medium, 3 Hard) "))
         while not (ans == 1 or ans == 2 or ans == 3):
             print("Invalid input, please enter a value between 1 and 3")
@@ -99,14 +99,19 @@ class CheckerGame():
         elif not self.playerTurn and self.playerCanContinue():
             self.playerTurn = True
 
+    # apply the given move in the game
     def move(self, oldrow, oldcol, row, col):
         if not self.isValidMove(oldrow, oldcol, row, col, self.playerTurn):
             return
+
+        # human player can only choose from the possible actions
+        if self.playerTurn and not ([oldrow, oldcol, row, col] in self.getPossiblePlayerActions()):
+            return
+
         self.makeMove(oldrow, oldcol, row, col)
-        # self.GUI.updateBoard()
-        # self.next()
         _thread.start_new_thread(self.next, ())
 
+    # update game state
     def next(self):
         if self.isGameOver():
             self.getGameSummary()
@@ -117,17 +122,15 @@ class CheckerGame():
         else:                   # AI's turn
             self.AIMakeMove()
 
+    # Temporarily Pause GUI and ask AI player to make next move.
     def AIMakeMove(self):
-        '''
-        Temporarily Pause GUI and ask AI player to make next move.
-        '''
         self.GUI.pauseGUI()
         oldrow, oldcol, row, col = self.AIPlayer.getNextMove()
         self.move(oldrow, oldcol, row, col)
         self.GUI.resumeGUI()
 
+    # update checker position
     def makeMove(self, oldrow, oldcol, row, col):
-        # update checker position
         toMove = self.board[oldrow][oldcol]
         self.checkerPositions[toMove] = (row, col)
 
@@ -147,6 +150,31 @@ class CheckerGame():
 
         self.setBoardUpdated()
 
+    # Get all possible moves for the current player
+    def getPossiblePlayerActions(self):
+        checkers = self.playerCheckers
+        regularDirs = [[-1, -1], [-1, 1]]
+        captureDirs = [[-2, -2], [-2, 2]]
+
+        regularMoves = []
+        captureMoves = []
+        for checker in checkers:
+            oldrow = self.checkerPositions[checker][0]
+            oldcol = self.checkerPositions[checker][1]
+            for dir in regularDirs:
+                if self.isValidMove(oldrow, oldcol, oldrow+dir[0], oldcol+dir[1], True):
+                    regularMoves.append([oldrow, oldcol, oldrow+dir[0], oldcol+dir[1]])
+            for dir in captureDirs:
+                if self.isValidMove(oldrow, oldcol, oldrow+dir[0], oldcol+dir[1], True):
+                    captureMoves.append([oldrow, oldcol, oldrow+dir[0], oldcol+dir[1]])
+
+        # must take capture move if possible
+        if captureMoves:
+            return captureMoves
+        else:
+            return regularMoves
+
+    # check if the given move if valid for the current player
     def isValidMove(self, oldrow, oldcol, row, col, playerTurn):
         # invalid index
         if oldrow < 0 or oldrow > 5 or oldcol < 0 or oldcol > 5 \

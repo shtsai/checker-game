@@ -41,12 +41,17 @@ class BoardGUI():
             self.c.create_line(0, self.row_height * i, self.WINDOW_WIDTH, self.row_height * i, width=2)
             self.c.create_line(self.col_width * i, 0, self.col_width * i, self.WINDOW_HEIGHT, width=2)
 
+        # Place checks on the board
         self.updateBoard()
 
         # Initialize parameters
         self.checkerSelected = False
         self.clickData = {"row": 0, "col": 0, "checker": None}
+
+        # Register callback function for mouse clicks
         self.c.bind("<Button-1>", self.processClick)
+
+        # make GUI updates board every second
         self.root.after(1000, self.updateBoard)
 
 
@@ -59,6 +64,7 @@ class BoardGUI():
     def resumeGUI(self):
         self.c.bind("<Button-1>", self.processClick)
 
+    # Update the positions of checkers
     def updateBoard(self):
         if self.game.isBoardUpdated():
             print("Updating Board")
@@ -69,6 +75,8 @@ class BoardGUI():
                         self.board[i][j] = newBoard[i][j]
                         self.c.delete(self.tiles[i][j])
                         self.tiles[i][j] = None
+
+                        # choose different color for different player's checkers
                         if newBoard[i][j] < 0:
                             self.tiles[i][j] = self.c.create_oval(j*self.col_width+10, i*self.row_height+10,
                                                               (j+1)*self.col_width-10, (i+1)*self.row_height-10,
@@ -79,8 +87,14 @@ class BoardGUI():
                                                                   fill="red")
                         else:  # no checker
                             continue
+
+                        # raise the tiles to highest layer
                         self.c.tag_raise(self.tiles[i][j])
+
+            # tell game logic that GUI has updated the board
             self.game.completeBoardUpdate()
+
+        # make GUI updates board every second
         self.root.after(1000, self.updateBoard)
 
     # this function checks if the checker belongs to the current player
@@ -89,6 +103,7 @@ class BoardGUI():
     def isCurrentPlayerChecker(self, row, col):
         return self.game.isPlayerTurn() == (self.board[row][col] > 0)
 
+    # callback function that process user's mouse clicks
     def processClick(self, event):
         col = int(event.x // self.col_width)
         row = int(event.y // self.row_height)
