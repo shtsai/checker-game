@@ -6,13 +6,12 @@
 
 import copy
 import math
+import datetime
 
 class AIPlayer():
     def __init__(self, game, difficulty):
         self.game = game
         self.difficulty = difficulty
-        if self.difficulty == 3:
-            self.depthLimit = 10
 
     def getNextMove(self):
         if self.difficulty == 1:
@@ -41,6 +40,7 @@ class AIPlayer():
         nextMove = self.alphaBetaSearch(state)
         return nextMove[0], nextMove[1], nextMove[2], nextMove[3]
 
+
     def alphaBetaSearch(self, state):
         # collect statistics for the search
         self.currentDepth = 0
@@ -50,9 +50,14 @@ class AIPlayer():
         self.minPruning = 0
 
         self.bestMove = []
+        self.depthLimit = self.computeDepthLimit(state)
+
+        starttime = datetime.datetime.now()
         v = self.maxValue(state, -1000, 1000, self.depthLimit)
 
         # print statistics for the search
+
+        print("Time = " + str(datetime.datetime.now() - starttime))
         print("selected value " + str(v))
         print("(1) max depth of the tree = {0:d}".format(self.maxDepth))
         print("(2) total number of nodes generated = {0:d}".format(self.numNodes))
@@ -60,6 +65,12 @@ class AIPlayer():
         print("(4) number of times pruning occurred in the MIN-VALUE() = {0:d}".format(self.minPruning))
 
         return self.bestMove
+
+    # Dynamically compute depth limit
+    # Fewer checkers we have, deeper level we can search
+    def computeDepthLimit(self, state):
+        numcheckers = len(state.AICheckers) + len(state.humanCheckers)
+        return 27 - numcheckers
 
     # For AI player (MAX)
     def maxValue(self, state, alpha, beta, depthLimit):
