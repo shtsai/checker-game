@@ -12,6 +12,7 @@ from AIPlayer import *
 
 class CheckerGame():
     def __init__(self):
+        self.lock = _thread.allocate_lock()
         self.board = self.initBoard()
         self.playerTurn = self.whoGoFirst()
         self.difficulty = self.getDifficulty()
@@ -81,10 +82,14 @@ class CheckerGame():
         return self.boardUpdated
 
     def setBoardUpdated(self):
+        self.lock.acquire()
         self.boardUpdated = True
+        self.lock.release()
 
     def completeBoardUpdate(self):
+        self.lock.acquire()
         self.boardUpdated = False
+        self.lock.release()
 
     def isPlayerTurn(self):
         return self.playerTurn
