@@ -13,10 +13,8 @@ from AIPlayer import *
 class CheckerGame():
     def __init__(self):
         self.board = self.initBoard()
-        # self.playerTurn = True
         self.playerTurn = self.whoGoFirst()
-        self.difficulty = 3
-        # self.difficulty = self.getDifficulty()
+        self.difficulty = self.getDifficulty()
         self.AIPlayer = AIPlayer(self, self.difficulty)
         self.GUI = BoardGUI(self)
 

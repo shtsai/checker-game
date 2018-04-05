@@ -6,6 +6,7 @@
 
 import copy
 import math
+import random
 import datetime
 
 class AIPlayer():
@@ -16,32 +17,39 @@ class AIPlayer():
     def getNextMove(self):
         if self.difficulty == 1:
             return self.getNextMoveEasy()
-        elif self.difficulty == 3:
+        elif self.difficulty == 2:
+            return self.getNextMoveMedium()
+        else:
             return self.getNextMoveHard()
 
-    # Simple AI, returns the first found legal move
+    # Simple AI, returns a random legal move
     def getNextMoveEasy(self):
-        directions = [[1, -1], [1, 1], [2, -2], [2, 2]]
-        for checker in self.game.opponentCheckers:
-            position = self.game.checkerPositions[checker]
-            print("Current checker: " + str(position))
-            row = position[0]
-            col = position[1]
-            for dir in directions:
-                print(str(row + dir[0]) + " " + str(col + dir[1]))
-                if self.game.isValidMove(row, col, row + dir[0], col + dir[1], False):
-                    print("----------------")
+        state = AIGameState(self.game)
+        moves = state.getActions(False)
+        index = random.randrange(len(moves))
+        chosenMove = moves[index]
+        return chosenMove[0], chosenMove[1], chosenMove[2], chosenMove[3]
 
-                    return row, col, row + dir[0], col + dir[1]
+    # Hard AI, returns the move found by alpha-beta search with depth limit 5
+    def getNextMoveMedium(self):
+        state = AIGameState(self.game)
+        nextMove = self.alphaBetaSearch(state, 5)
+        return nextMove[0], nextMove[1], nextMove[2], nextMove[3]
 
     # Hard AI, returns the best move found by alpha-beta search
     def getNextMoveHard(self):
         state = AIGameState(self.game)
-        nextMove = self.alphaBetaSearch(state)
+        depthLimit = self.computeDepthLimit(state)
+        nextMove = self.alphaBetaSearch(state, depthLimit)
         return nextMove[0], nextMove[1], nextMove[2], nextMove[3]
 
+    # Dynamically compute depth limit
+    # Fewer checkers we have, deeper level we can search
+    def computeDepthLimit(self, state):
+        numcheckers = len(state.AICheckers) + len(state.humanCheckers)
+        return 27 - numcheckers
 
-    def alphaBetaSearch(self, state):
+    def alphaBetaSearch(self, state, depthLimit):
         # collect statistics for the search
         self.currentDepth = 0
         self.maxDepth = 0
@@ -50,7 +58,7 @@ class AIPlayer():
         self.minPruning = 0
 
         self.bestMove = []
-        self.depthLimit = self.computeDepthLimit(state)
+        self.depthLimit = depthLimit
 
         starttime = datetime.datetime.now()
         v = self.maxValue(state, -1000, 1000, self.depthLimit)
@@ -65,12 +73,6 @@ class AIPlayer():
         print("(4) number of times pruning occurred in the MIN-VALUE() = {0:d}".format(self.minPruning))
 
         return self.bestMove
-
-    # Dynamically compute depth limit
-    # Fewer checkers we have, deeper level we can search
-    def computeDepthLimit(self, state):
-        numcheckers = len(state.AICheckers) + len(state.humanCheckers)
-        return 27 - numcheckers
 
     # For AI player (MAX)
     def maxValue(self, state, alpha, beta, depthLimit):
@@ -227,18 +229,20 @@ class AIGameState():
 
     # compute utility value of terminal state
     # utility value = difference in # of checkers * 500 + # of AI checkers * 50
+    # utility value has larger weights so that is it preferred over heuristic values
     def computeUtilityValue(self):
         utility = (len(self.AICheckers) - len(self.humanCheckers)) * 500 \
                   + len(self.AICheckers) * 50
-        print("Utility value = {0:d} :: {1:d} AI vs {2:d} Human".format(utility, len(self.AICheckers), len(self.humanCheckers)))
+        # print("Utility value = {0:d} :: {1:d} AI vs {2:d} Human".format(utility, len(self.AICheckers), len(self.humanCheckers)))
         return utility
 
+    # compute heuristic value of a non-terminal state
+    # heuristic value = diff in # of checkers * 50 + # of safe checkers * 10 + # of AI checkers
     def computeHeuristic(self):
         heurisitc = (len(self.AICheckers) - len(self.humanCheckers)) * 50 \
                     + self.countSafeAICheckers() * 10 + len(self.AICheckers)
-        print("Heuristic value = {0:d} :: {1:d} AI vs {2:d} Human".format(heurisitc, len(self.AICheckers), len(self.humanCheckers)))
+        # print("Heuristic value = {0:d} :: {1:d} AI vs {2:d} Human".format(heurisitc, len(self.AICheckers), len(self.humanCheckers)))
         return heurisitc
-
 
     # Count the number of safe AI checker.
     # A safe AI checker is one checker that no opponent can capture.
@@ -246,11 +250,14 @@ class AIGameState():
         count = 0
         for AIchecker in self.AICheckers:
             AIrow = self.checkerPositions[AIchecker][0]
+            AIcol = self.checkerPositions[AIchecker][1]
             safe = True
-            for humanchecker in self.humanCheckers:
-                if AIrow < self.checkerPositions[humanchecker][0]:
-                    safe = False
-                    break
+            if not (AIcol == 0 or AIcol == len(self.board[0])):
+                # checkers near the boundaries are safe
+                for humanchecker in self.humanCheckers:
+                    if AIrow < self.checkerPositions[humanchecker][0]:
+                        safe = False
+                        break
             if safe:
                 count += 1
         return count
@@ -259,12 +266,10 @@ class AIGameState():
     def getActions(self, humanTurn):
         if humanTurn:
             checkers = self.humanCheckers
-            # directions = [[-1, -1], [-1, 1], [-2, -2], [-2, 2]]
             regularDirs = [[-1, -1], [-1, 1]]
             captureDirs = [[-2, -2], [-2, 2]]
         else:
             checkers = self.AICheckers
-            # directions = [[1, -1], [1, 1], [2, -2], [2, 2]]
             regularDirs = [[1, -1], [1, 1]]
             captureDirs = [[2, -2], [2, 2]]
 
