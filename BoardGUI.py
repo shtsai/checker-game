@@ -67,7 +67,6 @@ class BoardGUI():
     # Update the positions of checkers
     def updateBoard(self):
         if self.game.isBoardUpdated():
-            print("Updating Board")
             newBoard = self.game.getBoard()
             for i in range(len(self.board)):
                 for j in range(len(self.board[0])):

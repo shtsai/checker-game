@@ -47,7 +47,7 @@ class AIPlayer():
     # Fewer checkers we have, deeper level we can search
     def computeDepthLimit(self, state):
         numcheckers = len(state.AICheckers) + len(state.humanCheckers)
-        return 27 - numcheckers
+        return 26 - numcheckers
 
     def alphaBetaSearch(self, state, depthLimit):
         # collect statistics for the search
@@ -128,7 +128,6 @@ class AIPlayer():
         v = math.inf
         for a in state.getActions(True):
             captured = state.applyAction(a)
-            # state.printBoard()
             if state.AICanContinue():
                 next = self.maxValue(state, alpha, beta, depthLimit - 1)
             else:  # AI cannot move, human gets one more move
@@ -233,7 +232,7 @@ class AIGameState():
     def computeUtilityValue(self):
         utility = (len(self.AICheckers) - len(self.humanCheckers)) * 500 \
                   + len(self.AICheckers) * 50
-        print("Utility value = {0:d} :: {1:d} AI vs {2:d} Human".format(utility, len(self.AICheckers), len(self.humanCheckers)))
+        #print("Utility value = {0:d} :: {1:d} AI vs {2:d} Human".format(utility, len(self.AICheckers), len(self.humanCheckers)))
         return utility
 
     # compute heuristic value of a non-terminal state
@@ -241,7 +240,7 @@ class AIGameState():
     def computeHeuristic(self):
         heurisitc = (len(self.AICheckers) - len(self.humanCheckers)) * 50 \
                     + self.countSafeAICheckers() * 10 + len(self.AICheckers)
-        print("Heuristic value = {0:d} :: {1:d} AI vs {2:d} Human".format(heurisitc, len(self.AICheckers), len(self.humanCheckers)))
+        #print("Heuristic value = {0:d} :: {1:d} AI vs {2:d} Human".format(heurisitc, len(self.AICheckers), len(self.humanCheckers)))
         return heurisitc
 
     # Count the number of safe AI checker.
